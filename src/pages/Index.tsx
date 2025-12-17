@@ -3,12 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Index() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [activeSection, setActiveSection] = useState('hero');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentEmail, setPaymentEmail] = useState('');
+  const [paymentName, setPaymentName] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const { toast } = useToast();
+
+  const PAYMENT_API_URL = 'https://functions.poehali.dev/ddaf75cf-41a8-4f00-80ea-7d688cd89271';
 
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -18,10 +27,52 @@ export default function Index() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', { email, message });
-    alert('Спасибо! Мы свяжемся с вами в ближайшее время.');
+    toast({
+      title: "Спасибо за обращение!",
+      description: "Мы свяжемся с вами в ближайшее время.",
+    });
     setEmail('');
     setMessage('');
+  };
+
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProcessing(true);
+
+    try {
+      const response = await fetch(PAYMENT_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create_payment',
+          email: paymentEmail,
+          name: paymentName,
+          return_url: window.location.origin + '/success'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.confirmation_url) {
+        window.location.href = data.confirmation_url;
+      } else {
+        toast({
+          title: "Ошибка оплаты",
+          description: data.error || "Попробуйте позже",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Ошибка соединения",
+        description: "Проверьте интернет и попробуйте снова",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
@@ -231,6 +282,7 @@ export default function Index() {
             <Button
               size="lg"
               className="w-full gradient-accent text-white font-semibold text-lg py-6 hover:scale-105 transition-transform shadow-xl"
+              onClick={() => setShowPaymentModal(true)}
             >
               Купить подписку
             </Button>
@@ -301,6 +353,68 @@ export default function Index() {
           <p className="text-sm">Закрытый клуб для фрилансеров и digital-кочевников</p>
         </div>
       </footer>
+
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-primary">Оформление подписки</DialogTitle>
+            <DialogDescription>
+              Заполните данные для оплаты подписки Core Member за 990₽/месяц
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handlePayment} className="space-y-4">
+            <div>
+              <label htmlFor="payment-name" className="block text-sm font-medium mb-2">
+                Ваше имя
+              </label>
+              <Input
+                id="payment-name"
+                type="text"
+                placeholder="Иван Иванов"
+                value={paymentName}
+                onChange={(e) => setPaymentName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="payment-email" className="block text-sm font-medium mb-2">
+                Email
+              </label>
+              <Input
+                id="payment-email"
+                type="email"
+                placeholder="your@email.com"
+                value={paymentEmail}
+                onChange={(e) => setPaymentEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Подписка Core Member</span>
+                <span className="font-bold text-lg">990₽</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                После оплаты вы получите письмо с доступом к закрытому чату и персональным промокодом
+              </p>
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full gradient-accent text-white font-semibold"
+              disabled={processing}
+            >
+              {processing ? (
+                <>
+                  <Icon name="Loader2" size={20} className="animate-spin mr-2" />
+                  Обработка...
+                </>
+              ) : (
+                'Перейти к оплате'
+              )}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

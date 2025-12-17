@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test create payment request",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "create_payment",
+        "email": "test@example.com",
+        "name": "Test User",
+        "return_url": "https://example.com/success"
+      },
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}
