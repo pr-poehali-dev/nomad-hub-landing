@@ -1,4 +1,6 @@
 {
+  "partners": "https://functions.poehali.dev/0ba101c6-edbb-4c53-947b-65f0d4c639ec",
+  "add-partner": "https://functions.poehali.dev/d2b62114-df23-487b-b0ce-23b330969373",
   "payment": "https://functions.poehali.dev/ddaf75cf-41a8-4f00-80ea-7d688cd89271",
   "admin": "https://functions.poehali.dev/44a19460-5879-481c-aa91-67beb2d871aa"
 }

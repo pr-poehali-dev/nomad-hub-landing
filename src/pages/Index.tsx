@@ -117,6 +117,12 @@ export default function Index() {
               >
                 Контакты
               </button>
+              <a
+                href="/partners"
+                className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+              >
+                Партнёры
+              </a>
             </div>
           </div>
         </div>
